@@ -1,252 +1,166 @@
-# AI Model Marketplace dApp
+# AI Model Marketplace
 
-This decentralized application (dApp) allows users to list, purchase, and rate AI models on a marketplace platform using Ethereum and an ERC-20 token (AITU_Nurassyl). The marketplace allows creators to sell their models in exchange for ERC-20 tokens, while buyers can review and purchase AI models.
+A decentralized marketplace for AI models where users can list, buy, and rate AI models using ERC-20 tokens. This platform enables secure transactions and community-driven quality assessment through a rating system.
 
----
+## Features
 
-## Usage
-
-1. **Run Ganache**: Start the Ganache application to set up a local blockchain environment or connect to Sepolia via Infura (Testnet).
-
-   ![Ganache](img/ganache.jpg)
-   ![Sepolia](img/sepolia.jpg)
-
-2. **Deploy the Smart Contract**: Use Truffle to deploy the smart contract. In your terminal, navigate to the project directory and run:
-   ```bash
-   truffle compile
-   truffle migrate --network development
-   ```
-
-3. **Move Contract ABI**: After deployment, move the generated contract ABI from the build folder to the frontend:
-   - ai-model-marketplace/frontend/src/abis/ContractABI.json
-   - ai-model-marketplace/frontend/src/abis/TokenABI.json
-
-4. **Create env file in root dir**: 
-    ```bash
-    touch .env
-    ```
-
-5. **Copy Contract Address**: Copy the contract address from the Truffle migration output and paste it into your environment file as `CONTRACT_ADDRESS`.
-
-6. **Move ABI to Frontend**: Copy the ABI from `AImodelMarketplace.json` & `AITU_Nurassyl.json` to the frontend directory:
-   ```bash
-   cp ai-model-marketplace/build/contracts/AImodelMarketplace.json ai-model-marketplace/frontend/src/abis/ContractABI.json
-   cp ai-model-marketplace/build/contracts/AITU_Nurassyl.json ai-model-marketplace/frontend/src/abis/TokenABI.json
-   ```
-
-7. **Start the Frontend**: Navigate to the frontend directory and start the application:
-   ```bash
-   cd ai-model-marketplace/frontend
-   npm start
-   ```
-
----
-
-## Key Features
-
-### 1. **MetaMask Wallet Integration**:
-- **Connect your wallet** using MetaMask to interact with the Ethereum blockchain.
-- **View ERC-20 token balance**: Once connected, users can see their available balance of the custom ERC-20 token (AITU_Nurassyl) to purchase AI models.
-- **Manage transactions**: Users can sign transactions to list models or purchase models directly from the marketplace.
-
-### 2. **Listing AI Models**:
-- **Sellers** can list their AI models for sale by providing:
-  - **Model Name**: A unique name for the AI model.
-  - **Model Description**: A brief description outlining the purpose of the AI model.
-  - **Price** (in ERC-20 tokens): The price at which the model is being sold. Sellers can set the price in their preferred token.
-- **Fee Handling**: The marketplace may include a fee structure in the smart contract, which could be a percentage of the sale price or a fixed fee, depending on your contract’s design.
-
-### 3. **Purchasing AI Models**:
-- **Buyers** can view the list of AI models, check detailed information, and purchase models using **ERC-20 tokens** (AITU_Nurassyl).
-- The **purchase process** involves:
-  - Approving the marketplace to transfer ERC-20 tokens from the buyer’s wallet.
-  - The marketplace smart contract ensures that the buyer has sufficient tokens to make the purchase before completing the transaction.
-  - **Instant purchase**: After a purchase, the model is marked as sold, and the transaction is completed, transferring the tokens from the buyer to the seller.
-
-### 4. **Model Ratings**:
-- **Buyers** can rate AI models on a scale of 1 to 5 **after purchasing**.
-  - **Rating System**: Each rating contributes to the overall score of the model, giving potential buyers insight into the model’s quality.
-  - The rating is stored and displayed on the marketplace.
-  - **Average Rating**: The contract uses an aggregated rating system, storing individual ratings and calculating the average rating.
-
-### 5. **Transaction Info**:
-- Each **transaction** (purchase or listing) is tracked and visible within the platform.
-- **Sender and Receiver Tracking**:
-  - Track the sender and receiver of each transaction.
-  - View transaction details such as the buyer, seller, amount, and timestamp.
-- **Transaction Events**:
-  - **Model Listed**: The event is triggered whenever a new model is listed for sale.
-  - **Model Purchased**: When a model is bought, an event is emitted with the buyer’s and seller’s details.
-  - **Model Rated**: When a model is rated, an event is emitted with the average rating.
-
-### 6. **Smart Contract for Transactions**:
-- **Smart contract logic** handles:
-  - **Model listing**: Ensures that the model’s details are recorded on the blockchain.
-  - **Model purchasing**: Ensures that funds are securely transferred and the model is marked as sold.
-  - **Model rating**: Ensures that the rating is valid and updates the total rating for the model.
-  - **Withdrawals**: Allows the contract owner (or specific addresses) to withdraw funds accumulated through sales or other mechanisms.
-
-### 7. **Token-based Purchases**:
-- All purchases are made using **ERC-20 tokens**, which can be bought, sold, or traded on various exchanges.
-- The **ERC-20 token** (AITU_Nurassyl) is fully compatible with any wallet or dApp that supports ERC-20 tokens.
-- **ERC-20 token interaction** is facilitated through:
-  - `approve`: Allows the buyer to approve the marketplace contract to spend the specified amount of tokens.
-  - `transfer`: The marketplace smart contract uses `transferFrom` to transfer tokens from the buyer to the seller.
-
-### 8. **Withdrawal and Owner Control**:
-- **Funds Withdrawal**: The contract owner can withdraw the funds from the smart contract at any time, which can include platform fees, contract balances, etc.
-- **Admin rights**: The owner has exclusive rights to withdraw funds, ensuring that funds are securely managed.
-
-### 9. **Decentralized Marketplace**:
-- By using **Ethereum** and **smart contracts**, the marketplace operates without a centralized authority, enabling trustless and transparent transactions between buyers and sellers.
-- **No intermediaries**: The contract ensures that once a model is listed, any buyer can purchase it without the need for intermediaries.
-
-### 10. **Frontend User Interface**:
-- **React.js** powers the frontend, providing a user-friendly interface for listing models, purchasing models, and interacting with the blockchain.
-  - **MetaMask**: Integrated into the frontend for seamless interaction with the Ethereum network.
-  - **Token balance** is displayed in the frontend, and buyers can see how many tokens they have available before making a purchase.
-
-### 11. **Scalable and Secure**:
-- The smart contract is designed for easy scaling, allowing the addition of more features such as:
-  - **Admin management** of listed models.
-  - **Escrow services** for holding funds until the buyer receives the model.
-  - **Model ownership transfer** and more.
-
-### 12. **Testable and Upgradable**:
-- The entire system is designed to be testable with **unit tests** on the smart contract, ensuring the integrity and functionality of the marketplace logic.
-- The system can be easily upgraded with new models or features, thanks to the flexibility of the smart contract and frontend architecture.
-
----
+- Connect/disconnect MetaMask wallet
+- List AI models for sale with name, description, and price
+- Buy models using ERC-20 tokens
+- Rate purchased models (1-5 stars)
+- View your listed models
+- Track model sales and ratings
+- Real-time token balance display
+- Delete your listed models
+- View all available and sold models
 
 ## Demo Screenshots
 
-Here are some demo screenshots of the AI Model Marketplace dApp:
+Here's a visual walkthrough of the main features:
 
-![Demo Screenshot 1](img/1.png)
-![Demo Screenshot 2](img/2.png)
-![Demo Screenshot 3](img/3.png)
-![Demo Screenshot 4](img/4.png)
-![Demo Screenshot 5](img/5.png)
-![Demo Screenshot 6](img/6.png)
-![Demo Screenshot 7](img/7.png)
+<img src="img/balance_check.jpeg" alt="Balance check" width="400">
+*Token balance check and wallet connection*
 
----
+<img src="img/listmodel.png" alt="List Model" width="400">
+*Interface for listing a new AI model*
 
-## Smart Contract Code
+<img src="img/model.jpeg" alt="Model" width="400">
+*Model display in the marketplace*
 
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.6.0 <0.9.0;
+<img src="img/model_2.jpeg" alt="How model looks for other users" width="400">
+*Model view for potential buyers*
 
-contract AImodelMarketplace {
-    struct Model {
-        string name;
-        string description;
-        uint256 price;
-        address payable creator;
-        address[] buyers; // Store buyers' addresses
-        uint8 ratingCount;
-        uint256 totalRating; // Using totalRating to manage float-like behavior
-    }
+<img src="img/sold_model.jpeg" alt="Sold Model" width="400">
+*View of a sold model with rating system*
 
-    Model[] public models;
-    mapping(uint256 => mapping(address => bool)) public hasPurchased; // Tracks if a user has purchased a model
-    address public owner;
+## Technology Stack
 
-    event ModelListed(uint256 modelId, string name, address creator, uint256 price);
-    event ModelPurchased(uint256 modelId, address buyer);
-    event ModelRated(uint256 modelId, uint256 averageRating, address rater); // Change to uint256 for average rating
-    event FundsWithdrawn(address owner, uint256 amount);
+- Frontend: React.js with React Router
+- Smart Contract Integration: ethers.js
+- Styling: Bootstrap & Custom CSS Modules
+- Wallet Integration: MetaMask
+- Network: Ganache (supports any EVM-compatible network)
 
-    constructor() {
-        owner = msg.sender; // Set the contract creator as the owner
-    }
+## Prerequisites
 
-    // Receive function to accept Ether
-    receive() external payable {}
+- Node.js (v14 or higher)
+- MetaMask wallet extension
+- ERC-20 tokens for transactions
+- Access to an Ganache network (mainnet, testnet, or local)
 
-    // Function to list a new AI model
-    function listModel(string memory name, string memory description, uint256 price) public payable {
-        require(price > 0, "Price must be greater than zero");
-        require(msg.value == price, "You must send the exact amount of Ether equal to the price");
+## Installation
 
-        uint256 modelId = models.length;
-
-        models.push(Model({
-            name: name,
-            description: description,
-            price: price,
-            creator: payable(msg.sender), // Correctly initialize as payable
-            buyers: new address Initialize buyers array correctly
-            ratingCount: 0,
-            totalRating: 0
-        }));
-
-        emit ModelListed(modelId, name, msg.sender, price);
-    }
-
-    function purchaseModel(uint256 modelId) public payable {
-        require(modelId < models.length, "Model does not exist");
-        Model storage model = models[modelId];
-        require(msg.value == model.price, "Incorrect amount sent");
-        require(model.creator != msg.sender, "Cannot purchase your own model");
-        require(!hasPurchased[modelId][msg.sender], "You have already purchased this model");
-
-        model.creator.transfer(msg.value); // Transfer the amount to the creator
-        model.buyers.push(msg.sender); // Store buyer's address
-        hasPurchased[modelId][msg.sender] = true; // Mark as purchased
-
-        emit ModelPurchased(modelId, msg.sender);
-    }
-
-    // Function to rate a model
-    function rateModel(uint256 modelId, uint8 rating) public {
-        require(modelId < models.length, "Model does not exist");
-        Model storage model = models[modelId];
-
-        require(rating >= 1 && rating <= 5, "Rating must be between 1 and 5");
-        require(model.creator != msg.sender, "Model creator cannot rate their own model");
-
-        model.ratingCount++;
-        model.totalRating += rating * 100; // Scale rating by 100 for two decimal precision
-
-        emit ModelRated(modelId, getAverageRating(modelId), msg.sender);
-    }
-
-    // Function to calculate average rating
-    function getAverageRating(uint256 modelId) public view returns (uint256) {
-        Model storage model = models[modelId];
-        return model.ratingCount > 0 ? model.totalRating / model.ratingCount : 0; // Returns average as a scaled uint256
-    }
-
-    // Function to withdraw funds from the contract
-    function withdrawFunds() public {
-        require(msg.sender == owner, "Only the owner can withdraw funds");
-        uint256 balance = address(this).balance;
-        require(balance > 0, "No funds to withdraw");
-
-        // Transfer the contract balance to the owner
-        payable(msg.sender).transfer(balance);
-        emit FundsWithdrawn(msg.sender, balance);
-    }
-
-    // Function to get model details
-    function getModelDetails(uint256 modelId) public view returns (string memory, string memory, uint256, address, uint256, address[] memory) {
-        require(modelId < models.length, "Model does not exist");
-        Model storage model = models[modelId];
-        uint256 averageRating = getAverageRating(modelId); // Get average rating
-
-        return (model.name, model.description, model.price, model.creator, averageRating, model.buyers);
-    }
-
-    // Function to get the total number of models
-    function totalModels() public view returns (uint256) {
-        return models.length;   
-    }
-}
+1. Clone the repository:
+```bash
+git clone https://github.com/nur1kesh/ai-model-marketplace
+cd ai-model-marketplace/frontend
 ```
----
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Configure environment:
+   - Create a `config.js` file in the `src` directory
+   - Add your contract addresses and ABIs:
+```javascript
+export const CONTRACT_ADDRESS = "your_marketplace_contract_address";
+export const TOKEN_ADDRESS = "your_token_contract_address";
+export const CONTRACT_ABI = [...]; // Your marketplace contract ABI
+export const TOKEN_ABI = [...];    // Your token contract ABI
+```
+
+4. Start the development server:
+```bash
+npm start
+```
+
+## Usage Guide
+
+### Connecting Your Wallet
+
+1. Click the "Connect Wallet" button in the navigation bar
+2. Approve the MetaMask connection request
+3. Your account address and token balance will appear in the header
+
+### Listing a Model
+
+1. Navigate to the "List Model" page
+2. Fill in the required fields:
+   - Model Name
+   - Description
+   - Price (in ERC tokens)
+   - Upload model file (supports .zip, .json, .h5, .onnx)
+3. Click "List Model" to create the listing
+
+### Buying a Model
+
+1. Browse available models on the home page
+2. Click "Buy Model" on any listing
+3. Approve the token spending in MetaMask
+4. Confirm the purchase transaction
+
+### Rating a Model
+
+1. Find the purchased model in the "Sold Models" section
+2. Click the star rating (1-5 stars)
+3. Click "Submit Rating" to record your rating
+
+### Managing Your Models
+
+- View your listed models in the "Your Models" section
+- Delete unwanted listings using the "Delete" button
+- Track sales and ratings of your models
+
+## Smart Contract Integration
+
+The marketplace uses two main smart contracts:
+
+1. **ERC-20 Token Contract**
+   - Handles token transfers for purchases
+   - Manages token approvals and balances
+
+2. **Marketplace Contract**
+   - Manages model listings
+   - Handles purchases
+   - Stores ratings and reviews
+   - Controls model ownership
+
+## Project Structure
+
+```
+src/
+├── components/
+│   └── NavBar.js
+├── pages/
+│   ├── Home.js        # Main marketplace view
+│   └── ListModel.js   # Model listing form
+├── App.js             # Main application component
+├── config.js          # Contract configuration
+└── styles/            # CSS modules and styles
+```
+
+## Security Considerations
+
+- All transactions require MetaMask confirmation
+- Smart contract interactions are protected by ownership checks
+- Token approvals are required before purchases
+- Multiple security validations for listing and purchasing
+- Wallet connection state is preserved securely
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support, please open an issue in the GitHub repository or contact the development team.
