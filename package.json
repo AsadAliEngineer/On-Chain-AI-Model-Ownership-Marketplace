@@ -1,0 +1,36 @@
+{
+  "name": "ai_model_marketplace_dapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "hardhat.config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "truffle compile",
+    "migrate": "truffle migrate",
+    "start": "lite-server",
+    "test": "truffle test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@truffle/hdwallet-provider": "^1.7.0",
+    "express": "^4.21.0",
+    "ipfs-http-client": "^60.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "web3": "^4.13.0"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.6",
+    "chai": "^5.1.1",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.12",
+    "lite-server": "^2.6.1",
+    "solc": "^0.8.27",
+    "truffle": "^5.8.2"
+  }
+}
