@@ -28,9 +28,10 @@ This decentralized application (dApp) allows users to list, purchase, and rate A
 
 5. **Copy Contract Address**: Copy the contract address from the Truffle migration output and paste it into your environment file as `CONTRACT_ADDRESS`.
 
-6. **Move ABI to Frontend**: Copy the ABI from `AImodelMarketplace.json` to the frontend directory:
+6. **Move ABI to Frontend**: Copy the ABI from `AImodelMarketplace.json` & `AITU_Nurassyl.json` to the frontend directory:
    ```bash
    cp ai-model-marketplace/build/contracts/AImodelMarketplace.json ai-model-marketplace/frontend/src/abis/ContractABI.json
+   cp ai-model-marketplace/build/contracts/AITU_Nurassyl.json ai-model-marketplace/frontend/src/abis/TokenABI.json
    ```
 
 7. **Start the Frontend**: Navigate to the frontend directory and start the application:
