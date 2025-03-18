@@ -1,102 +1,135 @@
-const AImodelMarketplace = artifacts.require("AImodelMarketplace");
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
-contract("AImodelMarketplace", (accounts) => {
-    let marketplace;
-    const [owner, buyer, anotherBuyer] = accounts;
+describe("AIModelMarketplace Contract", function () {
+  let AIModelMarketplace;
+  let aituToken;
+  let marketplace;
+  let owner, buyer, seller;
+  const initialSupply = 5000; // Example token supply
+  const modelPrice = ethers.utils.parseUnits("1", "ether"); // Price for AI model in tokens
 
-    beforeEach(async () => {
-        marketplace = await AImodelMarketplace.new();
+  beforeEach(async function () {
+    // Get signers (deployer, buyer, and seller)
+    [owner, buyer, seller] = await ethers.getSigners();
+
+    // Deploy the ERC-20 Token contract (AITU_Nurassyl)
+    const TokenFactory = await ethers.getContractFactory("AITU_Nurassyl_Modified");
+    aituToken = await TokenFactory.deploy(initialSupply * 10 ** 18); // Initial supply in smallest units (e.g., wei for tokens)
+    await aituToken.deployed();
+
+    // Deploy the AI Model Marketplace contract, passing the token address
+    const MarketplaceFactory = await ethers.getContractFactory("AIModelMarketplace");
+    marketplace = await MarketplaceFactory.deploy(aituToken.address);
+    await marketplace.deployed();
+
+    // Transfer tokens to the buyer for testing purposes
+    await aituToken.transfer(buyer.address, ethers.utils.parseUnits("100", "ether"));
+  });
+
+  describe("Listing and Buying Models", function () {
+    it("Should list a new AI model", async function () {
+      const modelName = "AI Model 1";
+      const modelDescription = "Description of AI Model 1";
+
+      // Seller lists a model for sale
+      await marketplace.connect(seller).listModel(modelName, modelDescription, modelPrice);
+
+      // Fetch model details from the marketplace
+      const model = await marketplace.models(1);
+
+      // Verify model details
+      expect(model.name).to.equal(modelName);
+      expect(model.description).to.equal(modelDescription);
+      expect(model.price.toString()).to.equal(modelPrice.toString());
+      expect(model.seller).to.equal(seller.address);
+      expect(model.isSold).to.equal(false);
     });
 
-    describe("Listing Models", () => {
-        it("should list a new model", async () => {
-            await marketplace.listModel("Model1", "Description1", web3.utils.toWei("1", "ether"), { from: owner, value: web3.utils.toWei("1", "ether") });
-            
-            const model = await marketplace.models(0);
-            assert.equal(model.name, "Model1");
-            assert.equal(model.description, "Description1");
-            assert.equal(model.price.toString(), web3.utils.toWei("1", "ether"));
-            assert.equal(model.creator, owner);
-            assert.equal(model.ratingCount.toString(), "0");
-            assert.equal(model.totalRating.toString(), "0");
-        });
+    it("Should allow the buyer to purchase a model", async function () {
+      const modelName = "AI Model 2";
+      const modelDescription = "Description of AI Model 2";
+
+      // Seller lists a model
+      await marketplace.connect(seller).listModel(modelName, modelDescription, modelPrice);
+
+      // Buyer purchases the model
+      await aituToken.connect(buyer).approve(marketplace.address, modelPrice);
+      await marketplace.connect(buyer).purchaseModel(1);
+
+      // Verify that the model is marked as sold
+      const model = await marketplace.models(1);
+      expect(model.isSold).to.equal(true);
+
+      // Check buyer's token balance after purchase
+      const buyerBalance = await aituToken.balanceOf(buyer.address);
+      expect(buyerBalance.toString()).to.equal(ethers.utils.parseUnits("99", "ether").toString()); // 100 - 1 token for the model
+
+      // Check seller's token balance after receiving payment
+      const sellerBalance = await aituToken.balanceOf(seller.address);
+      expect(sellerBalance.toString()).to.equal(ethers.utils.parseUnits("1", "ether").toString()); // Seller receives 1 token
     });
 
-    describe("Purchasing Models", () => {
-        it("should allow a user to purchase a model", async () => {
-            await marketplace.listModel("Model1", "Description1", web3.utils.toWei("1", "ether"), { from: owner });
-    
-            await marketplace.purchaseModel(0, { from: buyer, value: web3.utils.toWei("1", "ether") });
-    
-            const modelDetails = await marketplace.getModelDetails(0);
-            const buyers = modelDetails[5]; // buyers is the 6th return value (index 5)
-    
-            assert.equal(buyers.length, 1, "There should be one buyer."); // Check if there is one buyer
-            assert.equal(buyers[0], buyer, "The buyer should be the correct one."); // Check that the buyer is the correct one
-        });
+    it("Should emit the ModelPurchased event on successful purchase", async function () {
+      const modelName = "AI Model 3";
+      const modelDescription = "Description of AI Model 3";
 
-        it("should not allow a user to purchase their own model", async () => {
-            await marketplace.listModel("Model1", "Description1", web3.utils.toWei("1", "ether"), { from: owner });
-            try {
-                await marketplace.purchaseModel(0, { from: owner, value: web3.utils.toWei("1", "ether") });
-                assert.fail("Expected an error but did not get one");
-            } catch (error) {
-                assert(error.message.includes("Cannot purchase your own model"));
-            }
-        });
+      // Seller lists a model
+      await marketplace.connect(seller).listModel(modelName, modelDescription, modelPrice);
+
+      // Buyer purchases the model and expects the ModelPurchased event to be emitted
+      await expect(marketplace.connect(buyer).purchaseModel(1))
+        .to.emit(marketplace, "ModelPurchased")
+        .withArgs(1, buyer.address);
     });
 
-    describe("Rating Models", () => {
-        it("should allow a user to rate a model", async () => {
-            await marketplace.listModel("Model1", "Description1", web3.utils.toWei("1", "ether"), { from: owner });
-            await marketplace.purchaseModel(0, { from: buyer, value: web3.utils.toWei("1", "ether") });
-            
-            await marketplace.rateModel(0, 5, { from: buyer });
-            
-            const model = await marketplace.models(0);
-            assert.equal(model.ratingCount.toString(), "1");
-            assert.equal(model.totalRating.toString(), "5");
-        });
+    it("Should fail if the buyer does not have enough tokens to purchase", async function () {
+      const modelName = "AI Model 4";
+      const modelDescription = "Description of AI Model 4";
 
-        it("should not allow a creator to rate their own model", async () => {
-            await marketplace.listModel("Model1", "Description1", web3.utils.toWei("1", "ether"), { from: owner });
-            
-            try {
-                await marketplace.rateModel(0, 5, { from: owner });
-                assert.fail("Expected an error but did not get one");
-            } catch (error) {
-                assert(error.message.includes("Model creator cannot rate their own model"));
-            }
-        });
+      // Seller lists a model
+      await marketplace.connect(seller).listModel(modelName, modelDescription, modelPrice);
+
+      // Buyer tries to purchase the model without enough tokens (only 0.5 tokens)
+      await expect(marketplace.connect(buyer).purchaseModel(1)).to.be.revertedWith("Insufficient token balance");
     });
 
-    describe("Withdrawing Funds", () => {
-        it("should allow the owner to withdraw funds", async () => {
-            await marketplace.listModel("Model1", "Description1", web3.utils.toWei("1", "ether"), { from: owner });
-            await marketplace.purchaseModel(0, { from: buyer, value: web3.utils.toWei("1", "ether") });
-            const initialOwnerBalance = await web3.eth.getBalance(owner);
-            const tx = await marketplace.withdrawFunds({ from: owner });
-            const gasUsed = tx.receipt.gasUsed;
-            const txDetails = await web3.eth.getTransaction(tx.tx);
-            const gasPrice = txDetails.gasPrice;
-            const gasCost = gasUsed * gasPrice;
-            const finalOwnerBalance = await web3.eth.getBalance(owner);
-            const expectedFinalBalance = BigInt(initialOwnerBalance) + BigInt(web3.utils.toWei("1", "ether")) - BigInt(gasCost);
-            assert.equal(finalOwnerBalance, expectedFinalBalance.toString());
-        });
-        
-        
+    it("Should fail if a model has already been sold", async function () {
+      const modelName = "AI Model 5";
+      const modelDescription = "Description of AI Model 5";
 
-        it("should not allow non-owners to withdraw funds", async () => {
-            await marketplace.listModel("Model1", "Description1", web3.utils.toWei("1", "ether"), { from: owner });
-            await marketplace.purchaseModel(0, { from: buyer, value: web3.utils.toWei("1", "ether") });
+      // Seller lists a model
+      await marketplace.connect(seller).listModel(modelName, modelDescription, modelPrice);
 
-            try {
-                await marketplace.withdrawFunds({ from: anotherBuyer });
-                assert.fail("Expected an error but did not get one");
-            } catch (error) {
-                assert(error.message.includes("Only the owner can withdraw funds"));
-            }
-        });
+      // Buyer purchases the model
+      await aituToken.connect(buyer).approve(marketplace.address, modelPrice);
+      await marketplace.connect(buyer).purchaseModel(1);
+
+      // Trying to purchase again should fail as the model is already sold
+      await expect(marketplace.connect(buyer).purchaseModel(1)).to.be.revertedWith("Model already sold");
     });
+  });
+
+  describe("Transaction Info Tracking", function () {
+    it("Should track the last transaction details correctly", async function () {
+      const modelName = "AI Model 6";
+      const modelDescription = "Description of AI Model 6";
+
+      // Seller lists a model
+      await marketplace.connect(seller).listModel(modelName, modelDescription, modelPrice);
+
+      // Buyer purchases the model
+      await aituToken.connect(buyer).approve(marketplace.address, modelPrice);
+      await marketplace.connect(buyer).purchaseModel(1);
+
+      // Verify last transaction details
+      const lastSender = await marketplace.getLastTransactionSender();
+      const lastReceiver = await marketplace.getLastTransactionReceiver();
+      const lastTimestamp = await marketplace.getLastTransactionTimestamp();
+
+      expect(lastSender).to.equal(buyer.address);
+      expect(lastReceiver).to.equal(seller.address);
+      expect(lastTimestamp).to.include("Timestamp:");
+    });
+  });
 });
