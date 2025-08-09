@@ -6,7 +6,7 @@ This dApp allows users to list, purchase, and rate AI models on a decentralized 
 
 ## Usage
 
-1. **Run Ganache**: Start the Ganache application to set up a local blockchain environment or connect to Sepolia via Infura (Testnet).
+1. **Run**: Start the Ganache application to set up a local blockchain environment or connect to Sepolia via Infura (Testnet).
 
    ![Ganache](img/ganache.jpg)
    ![Sepolia](img/sepolia.jpg)
