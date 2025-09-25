@@ -1,13 +1,19 @@
-const AIModelMarketplace = artifacts.require("AImodelMarketplace");
+const AITU_Nurassyl = artifacts.require("AITU_Nurassyl_Modified");
+const AIModelMarketplace = artifacts.require("AIModelMarketplace");
 
 module.exports = async function (deployer, network, accounts) {
-  const creatorAccount = accounts[0];  // The account deploying the contract
+  // Deploy the ERC-20 token contract (AITU_Nurassyl)
+  const initialSupply = 5000; // Example: 5000 tokens
+  await deployer.deploy(AITU_Nurassyl, initialSupply * 10 ** 18);  // Adjust token supply in smallest units (e.g., 5000 tokens * 10^18)
+  const token = await AITU_Nurassyl.deployed();
 
-  // Deploy AIModelMarketplace contract
-  await deployer.deploy(AIModelMarketplace, { from: creatorAccount });
+  console.log("AITU_Nurassyl token deployed at:", token.address);
+
+  // Deploy the AIModelMarketplace contract, passing the token address to the constructor
+  await deployer.deploy(AIModelMarketplace, token.address);
+  const marketplace = await AIModelMarketplace.deployed();
+
+  console.log("AIModelMarketplace deployed at:", marketplace.address);
 
   // Optionally, you can initialize some values after deployment if needed
-  const aiModelMarketplaceInstance = await AIModelMarketplace.deployed();
-
-  console.log(`AIModelMarketplace deployed at address: ${aiModelMarketplaceInstance.address}`);
 };
