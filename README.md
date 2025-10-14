@@ -211,7 +211,7 @@ ai-model-marketplace/
 ### 1. Clone the portfolio repository
 
 ```bash
-git clone https://github.com/AsadAliEng/On-Chain-AI-Model-Ownership-Marketplace.git
+git clone https://github.com/AsadAliEngineer/On-Chain-AI-Model-Ownership-Marketplace.git
 cd On-Chain-AI-Model-Ownership-Marketplace
 ```
 
@@ -337,13 +337,13 @@ Distributed under the **MIT License**. Review the repository's [`LICENSE`](LICEN
 <table>
   <tr>
     <td width="150" align="center">
-      <img src="https://github.com/AsadAliEng.png?size=160" width="120" alt="Asad Ali GitHub avatar"><br>
+      <img src="https://github.com/AsadAliEngineer.png?size=160" width="120" alt="Asad Ali GitHub avatar"><br>
       <strong>Asad Ali</strong>
     </td>
     <td>
       <strong>AI, Blockchain & Software Engineer</strong><br><br>
-      🐙 GitHub: <a href="https://github.com/AsadAliEng">@AsadAliEng</a><br>
-      📧 Email: <a href="mailto:asadali.cryptoeng@gmail.com">asadali.cryptoeng@gmail.com</a><br>
+      🐙 GitHub: <a href="https://github.com/AsadAliEngineer">@AsadAliEngineer</a><br>
+      📧 Email: <a href="mailto:asadalieng1107@gmail.com">asadalieng1107@gmail.com</a><br>
       🚀 Focus: intelligent systems, Web3 products, automation, and production-oriented engineering
     </td>
   </tr>
