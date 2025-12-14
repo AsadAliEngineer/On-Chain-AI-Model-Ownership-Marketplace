@@ -54,7 +54,7 @@ Here are some demo screenshots of the AI Model Marketplace dApp:
 
 ---
 
-## Smart Contract Code
+### Smart Contract Code
 
 ```solidity
 // SPDX-License-Identifier: MIT
