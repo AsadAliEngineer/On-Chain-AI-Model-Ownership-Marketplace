@@ -1,109 +1,93 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.0 <0.9.0;
+pragma solidity ^0.8.0;
 
-contract AImodelMarketplace {
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol"; // Import the ERC-20 interface
+
+contract AIModelMarketplace {
+    
+    // Model struct to store model details
     struct Model {
         string name;
         string description;
-        uint256 price;
-        address payable creator;
-        address[] buyers; // Store buyers' addresses
-        uint8 ratingCount;
-        uint256 totalRating; // Using totalRating to manage float-like behavior
+        uint256 price;  // Price in ERC-20 token units (not ETH)
+        address payable seller;
+        bool isSold;
+    }
+    
+    // Mapping of model IDs to Model details
+    mapping(uint256 => Model) public models;
+    uint256 public modelCount;
+    
+    // ERC-20 Token address (The contract address of the token being used for purchase)
+    IERC20 public erc20Token;
+    
+    // Events for tracking model listing and purchase actions
+    event ModelListed(uint256 modelId, string name, address indexed seller, uint256 price);
+    event ModelPurchased(uint256 modelId, address indexed buyer, uint256 price);
+
+    // Constructor to initialize ERC-20 token address
+    constructor(address _erc20Token) {
+        erc20Token = IERC20(_erc20Token);
     }
 
-    Model[] public models;
-    mapping(uint256 => mapping(address => bool)) public hasPurchased; // Tracks if a user has purchased a model
-    address public owner;
+    // Function to list a new AI model for sale
+    function listModel(
+        string memory _name,
+        string memory _description,
+        uint256 _price
+    ) public {
+        require(_price > 0, "Price must be greater than zero");
+        
+        modelCount++;
+        models[modelCount] = Model({
+            name: _name,
+            description: _description,
+            price: _price,
+            seller: payable(msg.sender),
+            isSold: false
+        });
 
-    event ModelListed(uint256 modelId, string name, address creator, uint256 price);
-    event ModelPurchased(uint256 modelId, address buyer);
-    event ModelRated(uint256 modelId, uint256 averageRating, address rater); // Change to uint256 for average rating
-    event FundsWithdrawn(address owner, uint256 amount);
-
-    constructor() {
-        owner = msg.sender; // Set the contract creator as the owner
+        emit ModelListed(modelCount, _name, msg.sender, _price);
     }
 
-    // Receive function to accept Ether
-    receive() external payable {}
+    // Function to purchase an AI model with ERC-20 tokens
+    function purchaseModel(uint256 _modelId) public {
+        Model storage model = models[_modelId];
+        
+        require(!model.isSold, "Model already sold");
+        require(model.price > 0, "Model price is not set");
+        
+        // Transfer the ERC-20 tokens from buyer to seller
+        uint256 priceInTokens = model.price;
+        require(erc20Token.balanceOf(msg.sender) >= priceInTokens, "Insufficient token balance");
+        require(erc20Token.transferFrom(msg.sender, model.seller, priceInTokens), "Token transfer failed");
+        
+        // Mark the model as sold
+        model.isSold = true;
 
-    // Function to list a new AI model
-    function listModel(string memory name, string memory description, uint256 price) public payable {
-        require(price > 0, "Price must be greater than zero");
-        require(msg.value == price, "You must send the exact amount of Ether equal to the price");
-
-        uint256 modelId = models.length;
-
-        models.push(Model({
-            name: name,
-            description: description,
-            price: price,
-            creator: payable(msg.sender), // Correctly initialize as payable
-            buyers: new address[](0), // Initialize buyers array correctly
-            ratingCount: 0,
-            totalRating: 0
-        }));
-
-        emit ModelListed(modelId, name, msg.sender, price);
+        emit ModelPurchased(_modelId, msg.sender, priceInTokens);
     }
 
-    function purchaseModel(uint256 modelId) public payable {
-        require(modelId < models.length, "Model does not exist");
-        Model storage model = models[modelId];
-        require(msg.value == model.price, "Incorrect amount sent");
-        require(model.creator != msg.sender, "Cannot purchase your own model");
-        require(!hasPurchased[modelId][msg.sender], "You have already purchased this model");
-
-        model.creator.transfer(msg.value); // Transfer the amount to the creator
-        model.buyers.push(msg.sender); // Store buyer's address
-        hasPurchased[modelId][msg.sender] = true; // Mark as purchased
-
-        emit ModelPurchased(modelId, msg.sender);
+    // Function to retrieve the details of a model
+    function getModelDetails(uint256 _modelId) public view returns (
+        string memory name,
+        string memory description,
+        uint256 price,
+        address seller,
+        bool isSold
+    ) {
+        Model memory model = models[_modelId];
+        return (model.name, model.description, model.price, model.seller, model.isSold);
     }
 
-    // Function to rate a model
-    function rateModel(uint256 modelId, uint8 rating) public {
-        require(modelId < models.length, "Model does not exist");
-        Model storage model = models[modelId];
-
-        require(rating >= 1 && rating <= 5, "Rating must be between 1 and 5");
-        require(model.creator != msg.sender, "Model creator cannot rate their own model");
-
-        model.ratingCount++;
-        model.totalRating += rating * 100; // Scale rating by 100 for two decimal precision
-
-        emit ModelRated(modelId, getAverageRating(modelId), msg.sender);
+    // Function to get the balance of ERC-20 tokens of a user
+    function getUserBalance(address _user) public view returns (uint256) {
+        return erc20Token.balanceOf(_user);
     }
 
-    // Function to calculate average rating
-    function getAverageRating(uint256 modelId) public view returns (uint256) {
-        Model storage model = models[modelId];
-        return model.ratingCount > 0 ? model.totalRating / model.ratingCount : 0; // Returns average as a scaled uint256
-    }
-
-    // Function to withdraw funds from the contract
-    function withdrawFunds() public {
-        require(msg.sender == owner, "Only the owner can withdraw funds");
-        uint256 balance = address(this).balance;
-        require(balance > 0, "No funds to withdraw");
-
-        // Transfer the contract balance to the owner
-        payable(msg.sender).transfer(balance);
-        emit FundsWithdrawn(msg.sender, balance);
-    }
-
-    // Function to get model details
-    function getModelDetails(uint256 modelId) public view returns (string memory, string memory, uint256, address, uint256, address[] memory) {
-        require(modelId < models.length, "Model does not exist");
-        Model storage model = models[modelId];
-        uint256 averageRating = getAverageRating(modelId); // Get average rating
-
-        return (model.name, model.description, model.price, model.creator, averageRating, model.buyers);
-    }
-
-    // Function to get the total number of models
-    function totalModels() public view returns (uint256) {
-        return models.length;   
+    // Function to allow the contract owner to withdraw tokens
+    function withdrawTokens(uint256 _amount) public {
+        require(erc20Token.balanceOf(address(this)) >= _amount, "Insufficient contract balance");
+        erc20Token.transfer(msg.sender, _amount);
     }
 }
