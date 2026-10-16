@@ -1,88 +1,70 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";  // Import ERC-20 standard from OpenZeppelin
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract AITU_Nurassyl is ERC20 {
-    // Events to track transactions
-    event TransactionInfo(
-        address indexed sender,
-        address indexed receiver,
-        uint256 amount,
-        uint256 timestamp
-    );
+contract ERC20_smart_contract is ERC20 {
+    using Strings for uint256;
 
-    // Variables to store last transaction details
-    address private lastSender;
-    address private lastReceiver;
-    uint256 private lastTimestamp;
+    address public lastSender;
+    address public lastReceiver;
+    uint256 public lastTimestamp;
 
-    // Constructor to initialize the token with its name and symbol
-    constructor() ERC20("AITU_Nurassyl_SE-2327_Token", "UTK") {
-        // Mint 2000 tokens to the contract creator
-        _mint(msg.sender, 2000 * 10 ** decimals());
+    constructor(uint256 initialSupply) ERC20("AITU_SE-2318_Token", "AITUSE") {
+        _mint(msg.sender, initialSupply * 10 ** decimals());
     }
 
-    // Override the transfer function to emit the custom transaction event
-    function transfer(address recipient, uint256 amount)
-        public
-        override
-        returns (bool)
-    {
-        bool success = super.transfer(recipient, amount);
+    function transfer(address recipient, uint256 amount) public override returns (bool) {
+        lastSender = msg.sender;
+        lastReceiver = recipient;
+        lastTimestamp = block.timestamp;
 
-        if (success) {
-            lastSender = msg.sender;
-            lastReceiver = recipient;
-            lastTimestamp = block.timestamp;
-
-            // Emit the custom event after a successful transfer
-            emit TransactionInfo(msg.sender, recipient, amount, block.timestamp);
-        }
-
-        return success;
+        _transfer(msg.sender, recipient, amount);
+        return true;
     }
 
-    // Function to get the last transaction timestamp in human-readable format
     function getLastTransactionTimestamp() public view returns (string memory) {
-        uint256 ts = lastTimestamp;
-        return _convertTimestampToReadableFormat(ts);
+        if (lastTimestamp == 0) {
+            return "No transactions yet";
+        }
+        return timestampToHumanReadable(lastTimestamp);
     }
 
-    // Function to get the sender of the last transaction
-    function getLastTransactionSender() public view returns (address) {
+    function getLastSenderAddress() public view returns (address) {
         return lastSender;
     }
 
-    // Function to get the receiver of the last transaction
-    function getLastTransactionReceiver() public view returns (address) {
+    function getLastReceiverAddress() public view returns (address) {
         return lastReceiver;
     }
 
-    // Internal function to convert the timestamp into a human-readable format
-    function _convertTimestampToReadableFormat(uint256 timestamp)
-        internal
-        pure
-        returns (string memory)
-    {
-        return string(abi.encodePacked("Timestamp: ", uint2str(timestamp)));
+    function timestampToHumanReadable(uint256 timestamp) internal pure returns (string memory) {
+        uint256 daysCount = timestamp / 86400;
+        uint256 hoursCount = (timestamp % 86400) / 3600;
+        uint256 minutesCount = (timestamp % 3600) / 60;
+        uint256 secondsCount = timestamp % 60;
+
+        return string(abi.encodePacked(
+            daysCount.toString(), " days, ",
+            hoursCount.toString(), " hours, ",
+            minutesCount.toString(), " minutes, ",
+            secondsCount.toString(), " seconds"
+        ));
     }
 
-    // Internal function to convert uint256 to string
-    function uint2str(uint256 _i) internal pure returns (string memory) {
-        if (_i == 0) {
-            return "0";
-        }
+    function uintToStr(uint256 _i) internal pure returns (string memory) {
+        if (_i == 0) return "0";
         uint256 j = _i;
-        uint256 len;
+        uint256 length;
         while (j != 0) {
-            len++;
+            length++;
             j /= 10;
         }
-        bytes memory bstr = new bytes(len);
-        uint256 k = len - 1;
+        bytes memory bstr = new bytes(length);
+        uint256 k = length - 1;
         while (_i != 0) {
-            bstr[k--] = bytes1(uint8(48 + (_i % 10)));
+            bstr[k--] = bytes1(uint8(48 + _i % 10));
             _i /= 10;
         }
         return string(bstr);
